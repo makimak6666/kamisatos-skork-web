@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- Stars Background Generation ---
+    // --- Stars Background Generation (Optimized for Performance) ---
     const starsContainer = document.getElementById('stars-container');
-    const NUM_STARS = 100;
+    const NUM_STARS = 25; // Drastically reduced for performance
     
     for (let i = 0; i < NUM_STARS; i++) {
         const star = document.createElement('div');
@@ -157,4 +157,111 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const animateElements = document.querySelectorAll('.fade-in-up');
     animateElements.forEach(el => observer.observe(el));
+
+    // --- Daget.fun Style Custom Smooth Scroll (No CDN/Dependencies) ---
+    // Only apply on non-touch devices for best performance
+    if (!window.matchMedia("(max-width: 768px)").matches) {
+        const body = document.body;
+        const mainWrapper = document.createElement('div');
+        mainWrapper.id = 'smooth-wrapper';
+        
+        // Wrap all scrollable content (excluding fixed elements like nav, modals, bg)
+        const childrenToMove = Array.from(body.children).filter(el => {
+            const tag = el.tagName.toLowerCase();
+            const excludeTags = ['script', 'nav', 'style'];
+            const excludeClasses = ['stars-bg', 'modal', 'lightbox'];
+            
+            if (excludeTags.includes(tag)) return false;
+            if (excludeClasses.some(cls => el.classList.contains(cls))) return false;
+            return true;
+        });
+        
+        childrenToMove.forEach(child => mainWrapper.appendChild(child));
+        body.insertBefore(mainWrapper, body.firstChild);
+        
+        mainWrapper.style.position = 'fixed';
+        mainWrapper.style.top = '0';
+        mainWrapper.style.left = '0';
+        mainWrapper.style.width = '100%';
+        mainWrapper.style.overflow = 'hidden';
+        mainWrapper.style.willChange = 'transform';
+        
+        let currentY = 0;
+        let targetY = 0;
+        const ease = 0.06; // Buttery smooth daget.fun feel
+        
+        function updateScroll() {
+            targetY = window.scrollY;
+            // Native lerping
+            currentY += (targetY - currentY) * ease;
+            
+            // Apply translation avoiding sub-pixel rendering blur
+            mainWrapper.style.transform = `translate3d(0, ${-Math.round(currentY * 100) / 100}px, 0)`;
+            requestAnimationFrame(updateScroll);
+        }
+        
+        function setBodyHeight() {
+            body.style.height = `${mainWrapper.getBoundingClientRect().height}px`;
+        }
+        
+        window.addEventListener('resize', setBodyHeight);
+        window.addEventListener('load', () => { setTimeout(setBodyHeight, 100); });
+        
+        // Auto update height if content changes (images loading etc)
+        const resizeObserver = new ResizeObserver(setBodyHeight);
+        resizeObserver.observe(mainWrapper);
+        
+        updateScroll();
+
+        // --- Fix Anchor Links for Custom Scroll ---
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    e.preventDefault();
+                    // Calculate absolute position within the wrapper
+                    const rect = targetElement.getBoundingClientRect();
+                    const wrapperRect = mainWrapper.getBoundingClientRect();
+                    const absoluteTop = rect.top - wrapperRect.top;
+                    
+                    window.scrollTo({
+                        top: absoluteTop - 100, // 100px offset for fixed nav
+                        behavior: 'smooth' 
+                    });
+                }
+            });
+        });
+
+        // Handle page load with hash
+        if (window.location.hash) {
+            setTimeout(() => {
+                const targetElement = document.querySelector(window.location.hash);
+                if (targetElement) {
+                    const rect = targetElement.getBoundingClientRect();
+                    const wrapperRect = mainWrapper.getBoundingClientRect();
+                    window.scrollTo({ top: (rect.top - wrapperRect.top) - 100, behavior: 'instant' });
+                }
+            }, 300);
+        }
+
+        // Pause scroll translate when modal is open to avoid double scrollbars/issues
+        const observerConfig = { attributes: true, attributeFilter: ['class'] };
+        const modalObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                const target = mutation.target;
+                if (target.classList.contains('show')) {
+                    mainWrapper.style.position = 'static';
+                    mainWrapper.style.transform = 'none';
+                } else {
+                    mainWrapper.style.position = 'fixed';
+                    currentY = window.scrollY; // Reset target to avoid jumping
+                }
+            });
+        });
+
+        if (lightbox) modalObserver.observe(lightbox, observerConfig);
+        if (memberModal) modalObserver.observe(memberModal, observerConfig);
+    }
 });
