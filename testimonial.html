@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testimonial | Kamisato's Skork</title>
+    <meta name="description" content="Bukti transaksi dan testimonial layanan joki Genshin Impact Kamisato's Skork.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="stars-bg" id="stars-container"></div>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none; color: inherit;">
+                    <span class="highlight">Kamisato's</span> Skork
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#hero">Beranda</a></li>
+                <li><a href="index.html#layanan">Layanan Kami</a></li>
+                <li><a href="testimonial.html" class="active">Testimonial</a></li>
+                <li><a href="#" id="member-link">Member</a></li>
+                <li><a href="index.html#kontak" class="cta-nav">Hubungi Kami</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="page-content">
+        <section class="testimonial-hero fade-in-up">
+            <div class="section-title">
+                <h1>Bukti <span class="highlight-gold">Kepercayaan</span></h1>
+                <p>Kumpulan testimoni asli dari klien yang telah mempercayakan akun mereka kepada kami.</p>
+            </div>
+
+            <div class="gallery-grid">
+                <!-- Testimonial Images -->
+                <div class="gallery-item card-3d fade-in-up delay-1">
+                    <img src="testi/1.png" alt="Testimoni 1">
+                </div>
+                <div class="gallery-item card-3d fade-in-up delay-2">
+                    <img src="testi/2.png" alt="Testimoni 2">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="logo"><span class="highlight">Kamisato's</span> Skork</div>
+            <p>&copy; 2026 Kamisato's Skork Piloting Service. Cepat, Aman, dan Profesional.</p>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <span class="close-lightbox">&times;</span>
+        <div class="lightbox-content-wrapper">
+            <img class="lightbox-img" id="lightbox-img" alt="Zoomed Testimonial Image">
+        </div>
+    </div>
+
+    <!-- Under Construction Modal -->
+    <div id="construction-modal" class="modal">
+        <div class="modal-content glass-panel card-3d">
+            <span class="close-modal">&times;</span>
+            <div class="modal-icon">
+                <i class="fa-solid fa-person-digging"></i>
+            </div>
+            <h2>Fitur <span class="highlight-gold">Member</span></h2>
+            <p>Sistem registrasi member dan loyalty saat ini sedang dalam tahap pengembangan. Segera nantikan update
+                selanjutnya!</p>
+            <button class="btn btn-primary modal-btn">Mengerti</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
