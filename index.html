@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -28,6 +29,9 @@
                 <li><a href="#" id="member-link">Member</a></li>
                 <li><a href="#kontak" class="cta-nav">Hubungi Kami</a></li>
             </ul>
+            <div class="hamburger" id="hamburger-btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
         </div>
     </nav>
 
@@ -132,17 +136,33 @@
         </div>
     </div>
 
-    <!-- Under Construction Modal -->
-    <div id="construction-modal" class="modal">
+    <!-- Global Auth Modal -->
+    <div id="auth-modal" class="modal">
         <div class="modal-content glass-panel card-3d">
             <span class="close-modal">&times;</span>
-            <div class="modal-icon">
-                <i class="fa-solid fa-person-digging"></i>
+            <div class="modal-icon" style="font-size: 3rem; margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-user-shield"></i>
             </div>
-            <h2>Fitur <span class="highlight-gold">Member</span></h2>
-            <p>Sistem registrasi member dan loyalty saat ini sedang dalam tahap pengembangan. Segera nantikan update
-                selanjutnya!</p>
-            <button class="btn btn-primary modal-btn">Mengerti</button>
+            <h2 id="auth-title">Member <span class="highlight">Login</span></h2>
+            <p id="auth-desc" style="font-size: 0.95rem;">Masuk ke dashboard loyalty program Anda.</p>
+            
+            <form id="auth-form" class="auth-form" style="margin-top: 1rem;">
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <input type="text" id="auth-username" class="auth-input" placeholder="Username" required autocomplete="off">
+                </div>
+                <div class="input-group" style="margin-bottom: 0.5rem;">
+                    <input type="password" id="auth-password" class="auth-input" placeholder="Password (Minimal 6 karakter)" required>
+                </div>
+                
+                <p id="auth-error" style="color: #ff6b6b; font-size: 0.85rem; display: none; margin: 0.5rem 0 1rem; text-align: left;"></p>
+                
+                <button type="submit" class="btn btn-primary" id="auth-submit-btn" style="width: 100%; border-radius: 8px; margin-top: 0.5rem;">Login</button>
+            </form>
+            
+            <div style="margin-top: 1.5rem; font-size: 0.9rem;">
+                <span id="auth-switch-text">Belum punya akun?</span> 
+                <a href="#" id="auth-switch-btn" style="color: var(--custom-blue); font-weight: bold; text-decoration: none;">Daftar Sekarang</a>
+            </div>
         </div>
     </div>
 

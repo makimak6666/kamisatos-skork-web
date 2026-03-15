@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Pro Panel | Kamisato's Skork</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-wrapper { padding: 6rem 2rem 2rem; max-width: 1200px; margin: 0 auto; min-height: 80vh; }
+        
+        .admin-tabs {
+            display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;
+        }
+        .admin-tab-btn {
+            background: transparent; color: var(--text-muted); border: none; font-family: 'Cinzel', serif; font-size: 1.1rem;
+            cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.3s;
+        }
+        .admin-tab-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-tab-btn.active {
+            background: rgba(10, 20, 35, 0.8); color: var(--custom-blue); border: 1px solid var(--glass-border-light);
+            box-shadow: 0 0 15px rgba(148, 196, 233, 0.2);
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; color: white; text-align: left; background: rgba(10,20,35,0.5); border-radius: 12px; overflow: hidden; }
+        .admin-table th, .admin-table td { padding: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-table th { font-family: 'Cinzel', serif; color: var(--custom-blue); background: rgba(0,0,0,0.2); }
+        .admin-table tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-right: 0.2rem; margin-bottom: 0.2rem; }
+        .btn-reject { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.3); }
+        .btn-reject:hover { background: #ff6b6b; color: white; }
+        
+        .img-preview-mini { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
+        
+        /* Media Gallery Tab Styles */
+        .media-grid-item { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1/1; }
+        .media-grid-item img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; transition: transform 0.3s; }
+        .media-grid-item:hover img { transform: scale(1.05); }
+        .media-delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(232, 65, 24, 0.9); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5); transition: background 0.2s; }
+        .media-delete-btn:hover { background: #c23616; }
+    </style>
+</head>
+<body>
+    <div class="stars-bg"></div>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fa-solid fa-crown" style="color: gold;"></i> Admin <span class="highlight">Pro</span>
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="cta-nav" style="background: rgba(10,20,35,0.6) !important; border-color: rgba(255,255,255,0.2) !important;">Back to Dashboard</a></li>
+                <li><a href="#" id="logout-btn" class="cta-nav" style="background: rgba(255,107,107,0.1) !important; color: #ff6b6b !important; border-color: rgba(255,107,107,0.3) !important;">Logout</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger-btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-wrapper">
+        <div id="loading-auth" style="text-align: center; margin-top: 5rem;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--custom-blue);"></i>
+            <p style="margin-top: 1rem; color: var(--text-muted);">Memeriksa Otorisasi Super Admin...</p>
+        </div>
+        
+        <div id="admin-content" style="display: none;">
+            
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" data-tab="tab-pending"><i class="fa-solid fa-clipboard-list"></i> Antrean Pending</button>
+                <button class="admin-tab-btn" data-tab="tab-all"><i class="fa-solid fa-database"></i> Semua Testimoni</button>
+                <button class="admin-tab-btn" data-tab="tab-upload"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Gambar Cepat</button>
+                <button class="admin-tab-btn" data-tab="tab-inject-review" style="color: #4cd137;"><i class="fa-solid fa-pen-nib"></i> Review Injector</button>
+                <button class="admin-tab-btn" data-tab="tab-inject-points" style="color: gold;"><i class="fa-solid fa-coins"></i> Points Injector</button>
+            </div>
+            
+            <!-- TAB 1: PENDING -->
+            <div id="tab-pending" class="tab-content active glass-panel card-3d" style="padding: 2rem;">
+                <h2 style="font-family: 'Cinzel', serif; margin-bottom: 1.5rem; color: var(--custom-blue);">Antrean <span style="color:#fff;">Approval</span></h2>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead><tr><th>Tanggal</th><th>Username</th><th>Rating</th><th>Ulasan & Gambar</th><th>Aksi</th></tr></thead>
+                        <tbody id="testi-pending-body">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Memuat antrean...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 2: SEMUA (DELETE) -->
+            <div id="tab-all" class="tab-content glass-panel card-3d" style="padding: 2rem;">
+                <h2 style="font-family: 'Cinzel', serif; margin-bottom: 1.5rem; color: gold;">Manajemen <span style="color:#fff;">Database</span></h2>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead><tr><th>Status</th><th>Tanggal</th><th>Username</th><th>Review</th><th>Aksi Bahaya</th></tr></thead>
+                        <tbody id="testi-all-body">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Memuat riwayat...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 3: GALERI MEDIA -->
+            <div id="tab-gallery" class="tab-content glass-panel card-3d" style="padding: 2rem;">
+                <h2 style="font-family: 'Cinzel', serif; margin-bottom: 0.5rem; color: var(--custom-blue);"><i class="fa-solid fa-images"></i> Galeri <span style="color:#fff;">Khusus Media</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Manajemen visual untuk seluruh foto hasil unggahan. Menghapus foto dari sini juga menghapus dari database server Supabase.</p>
+                <div id="media-gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                    <!-- Gallery Content -->
+                </div>
+            </div>
+            
+            <!-- TAB 4: STANDALONE UPLOAD -->
+            <div id="tab-upload" class="tab-content glass-panel card-3d" style="padding: 2rem; max-width: 600px; margin: 0 auto;">
+                <h2 style="font-family: 'Cinzel', serif; margin-bottom: 0.5rem;"><i class="fa-solid fa-image" style="color: var(--custom-blue);"></i> Galeri <span class="highlight">Upoader</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Upload gambar screenshot Joki langsung ke halaman Testimonial secara independen tanpa perlu tulisan bintang.</p>
+                
+                <form id="admin-upload-form" class="auth-form">
+                    <div class="input-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Pilih File Gambar (.png/.jpg)</label>
+                        <input type="file" id="admin-file" accept="image/png, image/jpeg" required style="width: 100%; color: #fff; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                    </div>
+                    <p id="upload-msg" style="display: none; padding: 0.5rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;"></p>
+                    <button type="submit" class="btn btn-primary" id="admin-upload-btn" style="width: 100%;">Upload ke Server Supabase</button>
+                </form>
+            </div>
+            
+            <!-- TAB 5: REVIEW INJECTOR -->
+            <div id="tab-inject-review" class="tab-content glass-panel card-3d" style="padding: 2rem; max-width: 600px; margin: 0 auto;">
+                <h2 style="font-family: 'Cinzel', serif; margin-bottom: 0.5rem; color: #4cd137;"><i class="fa-solid fa-pen-nib"></i> Review <span style="color:#fff;">Injector</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Tulis ulasan seolah-olah Anda adalah member tersebut. Ulasan akan otomatis berstatus Approved.</p>
+                
+                <form id="inject-review-form" class="auth-form">
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Pilih Member (Username)</label>
+                        <select id="inject-user-select" required style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; font-size: 1rem;">
+                            <option value="">Memuat daftar member...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Rating</label>
+                        <select id="inject-rating" required style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; font-size: 1rem;">
+                            <option value="5">⭐⭐⭐⭐⭐ 5 Bintang</option>
+                            <option value="4">⭐⭐⭐⭐ 4 Bintang</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Teks Ulasan</label>
+                        <textarea id="inject-content" required rows="3" style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; font-size: 1rem; font-family: 'Nunito', sans-serif; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Lampirkan Foto (Opsional)</label>
+                        <input type="file" id="inject-file" accept="image/png, image/jpeg" style="width: 100%; color: #fff; font-size: 0.9rem;">
+                    </div>
+                    
+                    <p id="inject-review-msg" style="display: none; padding: 0.5rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;"></p>
+                    <button type="submit" class="btn btn-primary" id="inject-review-btn" style="width: 100%;">Terbitkan Review Atas Nama Member</button>
+                </form>
+            </div>
+            
+            <!-- TAB 6: POINTS INJECTOR -->
+            <div id="tab-inject-points" class="tab-content glass-panel card-3d" style="padding: 2rem; max-width: 600px; margin: 0 auto;">
+                <h2 style="font-family: 'Cinzel', serif; margin-bottom: 0.5rem; color: gold;"><i class="fa-solid fa-coins"></i> Points <span style="color:#fff;">Injector</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Ubah total Loyalty Points milik member secara paksa (Bypass RLS). Poin yang dimasukkan akan menimpa saldo sebelumnya.</p>
+                
+                <form id="inject-points-form" class="auth-form">
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Pilih Member (Username)</label>
+                        <select id="inject-points-user-select" required style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; font-size: 1rem;">
+                            <option value="">Memuat daftar member...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Set Total Poin Menjadi:</label>
+                        <input type="number" id="inject-points-amount" required min="0" value="0" style="width: 100%; padding: 1rem; background: rgba(0,0,0,0.3); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; font-size: 1.5rem; font-weight: bold;">
+                    </div>
+                    
+                    <p id="inject-points-msg" style="display: none; padding: 0.5rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;"></p>
+                    <button type="submit" class="btn btn-primary" id="inject-points-btn" style="width: 100%; background: linear-gradient(45deg, #fbc531, #e1b12c); border-color: #fbc531; color: #000; font-weight: bold;">Suntik Poin Sekarang</button>
+                </form>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" style="z-index: 2000;">
+        <span class="close-lightbox">&times;</span>
+        <div class="lightbox-content-wrapper"><img class="lightbox-img" id="lightbox-img" alt="Zoomed"></div>
+    </div>
+
+    <!-- Core Logic -->
+    <script>
+        const supabaseUrl = 'https://duwqszyygfwqzkgmivah.supabase.co';
+        const supabaseKey = 'sb_publishable_chqwVl0d8g9_b8lHzlA9hQ_vYj4K1gM';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Hamburger Mobile Toggle
+            const hamburger = document.getElementById('hamburger-btn');
+            const navLinks = document.querySelector('.nav-links');
+            if(hamburger && navLinks) {
+                hamburger.addEventListener('click', () => navLinks.classList.toggle('nav-active'));
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', () => navLinks.classList.remove('nav-active'));
+                });
+            }
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = 'index.html'; return; }
+            currentUser = session.user;
+
+            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', currentUser.id).single();
+            if (!profile || profile.role !== 'admin') {
+                alert('Akses Ditolak! Khusus Master Admin.');
+                window.location.href = 'dashboard.html'; return;
+            }
+
+            document.getElementById('loading-auth').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            
+            // Initial fetches
+            fetchPending();
+            fetchAll();
+            fetchGallery();
+            fetchMembersForInjection();
+            
+            // Tab Switching Logic
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(btn.dataset.tab).classList.add('active');
+                });
+            });
+            
+            // Upload Form Handling
+            document.getElementById('admin-upload-form').addEventListener('submit', handleAdminUpload);
+            document.getElementById('inject-review-form').addEventListener('submit', handleInjectReview);
+            document.getElementById('inject-points-form').addEventListener('submit', handleInjectPoints);
+
+            document.getElementById('inject-points-user-select').addEventListener('change', async (e) => {
+                const uid = e.target.value;
+                if(!uid) { document.getElementById('inject-points-amount').value = 0; return; }
+                const { data } = await supabaseClient.from('profiles').select('loyalty_points').eq('id', uid).single();
+                if(data) document.getElementById('inject-points-amount').value = data.loyalty_points || 0;
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', async (e) => {
+                e.preventDefault(); await supabaseClient.auth.signOut(); window.location.href = 'index.html';
+            });
+            
+            // Lightbox
+            document.querySelector('.close-lightbox').addEventListener('click', () => document.getElementById('lightbox').classList.remove('show'));
+            document.getElementById('lightbox').addEventListener('click', (e) => { if(e.target === document.getElementById('lightbox')) document.getElementById('lightbox').classList.remove('show'); });
+        });
+        
+        function getImageUrl(path) {
+            if (!path) return null;
+            return supabaseClient.storage.from('testi_images').getPublicUrl(path).data.publicUrl;
+        }
+
+        async function fetchPending() {
+            const tbody = document.getElementById('testi-pending-body');
+            const { data, error } = await supabaseClient.from('testimonials')
+                .select(`id, rating, content, image_url, created_at, profiles(raw_username)`)
+                .eq('status', 'pending').order('created_at', { ascending: false });
+                
+            if (error) { tbody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`; return; }
+            if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Tidak ada antrean baru.</td></tr>`; return; }
+            
+            tbody.innerHTML = '';
+            data.forEach(t => {
+                const date = new Date(t.created_at).toLocaleDateString();
+                const user = t.profiles?.raw_username || 'Unknown';
+                let contentHTML = t.content;
+                if (t.image_url) {
+                    const fullUrl = getImageUrl(t.image_url);
+                    contentHTML += `<br><img src="${fullUrl}" class="img-preview-mini" onclick="showLightbox('${fullUrl}')" title="Klik untuk zoom">`;
+                }
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-size: 0.8rem; color: #888;">${date}</td>
+                        <td style="font-weight: bold;">${user}</td>
+                        <td>${t.rating ? t.rating + '⭐' : '-'}</td>
+                        <td style="font-size: 0.9rem;">${contentHTML}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="updateStatus('${t.id}', 'approved')">Approve (+50 Poin)</button>
+                            <button class="btn btn-reject btn-sm" onclick="updateStatus('${t.id}', 'rejected')">Tolak</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function fetchAll() {
+            const tbody = document.getElementById('testi-all-body');
+            const { data, error } = await supabaseClient.from('testimonials')
+                .select(`id, status, rating, content, image_url, created_at, profiles(raw_username)`)
+                .order('created_at', { ascending: false });
+                
+            if (error) { tbody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`; return; }
+            
+            tbody.innerHTML = '';
+            data.forEach(t => {
+                const date = new Date(t.created_at).toLocaleDateString();
+                const user = t.profiles?.raw_username || 'Admin / Unknown';
+                
+                let statusBadge = '';
+                if(t.status === 'approved') statusBadge = '<span style="color: #4cd137;">Approved</span>';
+                else if(t.status === 'pending') statusBadge = '<span style="color: #fbc531;">Pending</span>';
+                else statusBadge = '<span style="color: #e84118;">Rejected</span>';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight:bold;">${statusBadge}</td>
+                        <td style="font-size: 0.8rem; color: #888;">${date}</td>
+                        <td>${user}</td>
+                        <td style="font-size: 0.9rem;">${t.content ? t.content.substring(0,30)+'...' : '<i>[Only Image]</i>'}</td>
+                        <td>
+                            <button class="btn btn-reject btn-sm" onclick="deleteTesti('${t.id}', '${t.image_url || ''}')"><i class="fa-solid fa-trash"></i> Permanen</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function fetchGallery() {
+            const grid = document.getElementById('media-gallery-grid');
+            const { data, error } = await supabaseClient.from('testimonials')
+                .select(`id, status, image_url`)
+                .not('image_url', 'is', null)
+                .neq('image_url', '')
+                .order('created_at', { ascending: false });
+                
+            if (error) { grid.innerHTML = `<div style="grid-column: 1/-1;">Error: ${error.message}</div>`; return; }
+            if (data.length === 0) { grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:var(--text-muted);">Tidak ada media gambar yang tersimpan secara terpusat.</div>`; return; }
+            
+            grid.innerHTML = '';
+            data.forEach(t => {
+                const fullUrl = getImageUrl(t.image_url);
+                const badge = t.status === 'pending' ? '<div style="position:absolute; top:5px; left:5px; background:#fbc531; color:#000; font-size:0.7rem; font-weight:bold; padding:2px 6px; border-radius:4px; z-index:10;">Pending</div>' : '';
+                grid.innerHTML += `
+                    <div class="media-grid-item">
+                        ${badge}
+                        <img src="${fullUrl}" onclick="showLightbox('${fullUrl}')" title="Klik untuk zoom">
+                        <button class="media-delete-btn" onclick="deleteTesti('${t.id}', '${t.image_url}')" title="Hapus Gambar Permanen"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        async function updateStatus(id, newStatus) {
+            if (!confirm(`Approval testi ini? (${newStatus})`)) return;
+            await supabaseClient.from('testimonials').update({ status: newStatus }).eq('id', id);
+            fetchPending(); fetchAll(); fetchGallery();
+        }
+
+        async function deleteTesti(id, filePath) {
+            if (!confirm(`HAPUS PERMANEN dari database? Jika ada foto juga akan terhapus dari server!`)) return;
+            
+            // Delete image from storage if exists
+            if (filePath && filePath !== 'null' && filePath !== '') {
+                await supabaseClient.storage.from('testi_images').remove([filePath]);
+            }
+            
+            // Delete row
+            await supabaseClient.from('testimonials').delete().eq('id', id);
+            
+            fetchPending(); fetchAll(); fetchGallery();
+        }
+
+        async function handleAdminUpload(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('admin-file');
+            const btn = document.getElementById('admin-upload-btn');
+            const msg = document.getElementById('upload-msg');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            btn.disabled = true; btn.textContent = 'Uploading...';
+            
+            try {
+                // 1. Upload to Storage
+                const fileExt = file.name.split('.').pop();
+                const fileName = `admin_${Date.now()}.${fileExt}`;
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('testi_images').upload(fileName, file);
+                    
+                if (uploadError) throw uploadError;
+
+                // 2. Insert as approved testimonial (null rating/content)
+                const { error: dbError } = await supabaseClient.from('testimonials').insert([{ 
+                    user_id: currentUser.id, 
+                    image_url: uploadData.path,
+                    status: 'approved',
+                    content: 'Admin Upload'
+                }]);
+                
+                if (dbError) throw dbError;
+                
+                msg.textContent = '✅ Gambar berhasil ditambahkan ke Galeri Publik!';
+                msg.style.display = 'block'; msg.style.background = 'rgba(76, 209, 55, 0.2)'; msg.style.color = '#4cd137';
+                fileInput.value = '';
+                fetchAll(); fetchGallery();
+                
+                setTimeout(() => msg.style.display = 'none', 5000);
+            } catch (err) {
+                msg.textContent = 'Gagal: ' + err.message;
+                msg.style.display = 'block'; msg.style.background = 'rgba(232, 65, 24, 0.2)'; msg.style.color = '#e84118';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Upload ke Server Supabase';
+            }
+        }
+
+        async function fetchMembersForInjection() {
+            const selectReview = document.getElementById('inject-user-select');
+            const selectPoints = document.getElementById('inject-points-user-select');
+            
+            const { data, error } = await supabaseClient.from('profiles').select('id, raw_username, loyalty_points').order('raw_username');
+            
+            if (error || !data) return;
+            
+            let optionsHTML = '<option value="">-- Pilih Member --</option>';
+            data.forEach(p => {
+                optionsHTML += `<option value="${p.id}">@${p.raw_username} (${p.loyalty_points || 0} Poin)</option>`;
+            });
+            
+            selectReview.innerHTML = optionsHTML;
+            selectPoints.innerHTML = optionsHTML;
+        }
+
+        async function handleInjectReview(e) {
+            e.preventDefault();
+            const btn = document.getElementById('inject-review-btn');
+            const msg = document.getElementById('inject-review-msg');
+            const uid = document.getElementById('inject-user-select').value;
+            const rating = parseInt(document.getElementById('inject-rating').value);
+            const content = document.getElementById('inject-content').value;
+            const file = document.getElementById('inject-file').files[0];
+            
+            if(!uid) { alert('Pilih member terlebih dahulu!'); return; }
+            
+            btn.disabled = true; btn.textContent = 'Menulis Review...';
+            let imagePath = null;
+            
+            try {
+                if (file) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `inject_${Date.now()}.${fileExt}`;
+                    const { data: uploadData, error: uploadError } = await supabaseClient.storage.from('testi_images').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+                    imagePath = uploadData.path;
+                }
+                
+                const { error: dbError } = await supabaseClient.from('testimonials').insert([{ 
+                    user_id: uid, rating: rating, content: content, image_url: imagePath, status: 'approved' 
+                }]);
+                
+                if (dbError) throw dbError;
+                
+                msg.textContent = '✅ Review Ghost-written Berhasil Diterbitkan!';
+                msg.style.display = 'block'; msg.style.background = 'rgba(76, 209, 55, 0.2)'; msg.style.color = '#4cd137';
+                document.getElementById('inject-content').value = '';
+                document.getElementById('inject-file').value = '';
+                fetchAll(); fetchGallery();
+                setTimeout(() => msg.style.display = 'none', 5000);
+            } catch (err) {
+                msg.textContent = 'Gagal: ' + err.message;
+                msg.style.display = 'block'; msg.style.background = 'rgba(232, 65, 24, 0.2)'; msg.style.color = '#e84118';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Terbitkan Review Atas Nama Member';
+            }
+        }
+
+        async function handleInjectPoints(e) {
+            e.preventDefault();
+            const btn = document.getElementById('inject-points-btn');
+            const msg = document.getElementById('inject-points-msg');
+            const uid = document.getElementById('inject-points-user-select').value;
+            const newPoints = parseInt(document.getElementById('inject-points-amount').value);
+            
+            if(!uid) { alert('Pilih member terlebih dahulu!'); return; }
+            
+            btn.disabled = true; btn.textContent = 'Menyuntik Poin...';
+            
+            try {
+                // Call our Database RPC Function bypassing standard user-level RLS
+                const { error } = await supabaseClient.rpc('set_loyalty_points', {
+                    target_user_id: uid,
+                    new_points: newPoints
+                });
+                
+                if (error) throw error;
+                
+                msg.textContent = `✅ Sukses! Saldo member kini di-set menjadi ${newPoints} Poin.`;
+                msg.style.display = 'block'; msg.style.background = 'rgba(76, 209, 55, 0.2)'; msg.style.color = '#4cd137';
+                fetchMembersForInjection(); // Refresh the dropdowns point text
+                setTimeout(() => msg.style.display = 'none', 5000);
+            } catch (err) {
+                msg.textContent = 'Gagal: ' + err.message;
+                msg.style.display = 'block'; msg.style.background = 'rgba(232, 65, 24, 0.2)'; msg.style.color = '#e84118';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Suntik Poin Sekarang';
+            }
+        }
+
+        function showLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('lightbox').classList.add('show');
+        }
+    </script>
+</body>
+</html>

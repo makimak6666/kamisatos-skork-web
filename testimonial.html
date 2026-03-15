@@ -1,85 +1,382 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Testimonial | Kamisato's Skork</title>
-    <meta name="description" content="Bukti transaksi dan testimonial layanan joki Genshin Impact Kamisato's Skork.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Standalone styles for this new page layout to ensure no CSS conflicts */
+        .testi-page-wrapper {
+            padding-top: 8rem;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-header h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Grid for Text Reviews (Supabase) */
+        .text-reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 6rem;
+        }
+        
+        .text-review-card {
+            background: rgba(10, 20, 35, 0.6);
+            border: 1px solid var(--glass-border-light);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: transform 0.3s ease;
+        }
+        
+        .text-review-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .stars-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Grid for Image Gallery (Local /testi) */
+        .image-gallery-grid {
+            column-count: 3;
+            column-gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+        
+        @media (max-width: 900px) {
+            .image-gallery-grid { column-count: 2; }
+        }
+        @media (max-width: 600px) {
+            .image-gallery-grid { column-count: 1; }
+        }
+        
+        .image-item {
+            break-inside: avoid;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            cursor: zoom-in;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .image-item:hover {
+            transform: scale(1.02);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        .image-item img {
+            width: 100%;
+            display: block;
+        }
+    </style>
 </head>
-
-<body>
+<body style="overflow-x: hidden;">
     <div class="stars-bg" id="stars-container"></div>
+    <div class="glow bottom-right"></div>
+    <div class="glow top-left"></div>
+
     <nav class="glass-nav">
         <div class="nav-container">
             <div class="logo">
                 <a href="index.html">
-                    <i class="fa-solid fa-moon"></i> Kamisato's <span class="highlight">Skork</span>
+                    <img src="assets/crescent-moon.png" alt="" style="width: 24px; vertical-align: middle; margin-right: 8px;">
+                    <span class="highlight">Kamisato's</span> Skork
                 </a>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html#hero">Beranda</a></li>
+                <li><a href="index.html">Beranda</a></li>
                 <li><a href="index.html#layanan">Layanan Kami</a></li>
                 <li><a href="testimonial.html" class="active">Testimonial</a></li>
-                <li><a href="#" id="member-link">Member</a></li>
-                <li><a href="index.html#kontak" class="cta-nav">Hubungi Kami</a></li>
+                <li><a href="#" id="member-link" class="cta-nav"><i class="fa-solid fa-user-shield"></i> Member</a></li>
             </ul>
+            <div class="hamburger" id="hamburger-btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
         </div>
     </nav>
 
-    <main class="page-content">
-        <section class="testimonial-hero fade-in-up">
-            <div class="section-title">
-                <h1>Bukti <span class="highlight-gold">Kepercayaan</span></h1>
-                <p>Kumpulan testimoni asli dari klien yang telah mempercayakan akun mereka kepada kami.</p>
+    <main class="testi-page-wrapper">
+        
+        <!-- SECTION 1: Text Reviews -->
+        <div class="section-header">
+            <h2>Ulasan <span class="highlight-gold">Member</span></h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Apa kata pelanggan setia yang menggunakan jasa piloting kami?</p>
+        </div>
+        
+        <div class="text-reviews-grid" id="supabase-reviews">
+            <!-- Loading State -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--custom-blue);"></i>
+                <p style="margin-top: 1rem; color: var(--text-muted);">Menarik data dari server...</p>
             </div>
+        </div>
 
-            <div class="gallery-grid">
-                <!-- Testimonial Images -->
-                <div class="gallery-item card-3d fade-in-up delay-1">
-                    <img src="testi/1.png" alt="Testimoni 1">
-                </div>
-                <div class="gallery-item card-3d fade-in-up delay-2">
-                    <img src="testi/2.png" alt="Testimoni 2">
-                </div>
+        <!-- SECTION 2: Image Gallery -->
+        <div class="section-header">
+            <h2>Galeri <span class="highlight-gold">Screenshot</span></h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Bukti visual penyelesaian orderan Abysss dan Eksplorasi.</p>
+        </div>
+        
+        <div class="image-gallery-grid">
+            <!-- Fetching directly from local /testi folder -->
+            <div class="image-item">
+                <img src="testi/1.png" class="zoomable-img" alt="Testimoni 1">
             </div>
-        </section>
+            <div class="image-item">
+                <img src="testi/2.png" class="zoomable-img" alt="Testimoni 2">
+            </div>
+        </div>
+        
     </main>
 
-    <footer>
+    <footer style="margin-top: auto;">
         <div class="footer-content">
             <div class="logo"><span class="highlight">Kamisato's</span> Skork</div>
             <p>&copy; 2026 Kamisato's Skork Piloting Service. Cepat, Aman, dan Profesional.</p>
         </div>
     </footer>
 
-    <!-- Lightbox Modal -->
+    <!-- Lightbox Element -->
     <div id="lightbox" class="lightbox">
         <span class="close-lightbox">&times;</span>
         <div class="lightbox-content-wrapper">
-            <img class="lightbox-img" id="lightbox-img" alt="Zoomed Testimonial Image">
+            <img class="lightbox-img" id="lightbox-img" alt="Zoomed Screenshot">
         </div>
     </div>
-
-    <!-- Under Construction Modal -->
-    <div id="construction-modal" class="modal">
+    
+    <!-- Auth Modal (Standard) -->
+    <div id="auth-modal" class="modal">
         <div class="modal-content glass-panel card-3d">
             <span class="close-modal">&times;</span>
-            <div class="modal-icon">
-                <i class="fa-solid fa-person-digging"></i>
+            <div class="modal-icon" style="font-size: 3rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-user-shield"></i></div>
+            <h2 id="auth-title">Member <span class="highlight">Login</span></h2>
+            <form id="auth-form" class="auth-form" style="margin-top: 1rem;">
+                <input type="text" id="auth-username" class="auth-input" placeholder="Username" required style="margin-bottom: 1rem;">
+                <input type="password" id="auth-password" class="auth-input" placeholder="Password" required style="margin-bottom: 0.5rem;">
+                <p id="auth-error" style="color: #ff6b6b; font-size: 0.85rem; display: none; margin-bottom: 1rem;"></p>
+                <button type="submit" class="btn btn-primary" id="auth-submit-btn" style="width: 100%;">Login</button>
+            </form>
+            <div style="margin-top: 1.5rem; font-size: 0.9rem;">
+                <span id="auth-switch-text">Belum punya akun?</span> 
+                <a href="#" id="auth-switch-btn" style="color: var(--custom-blue); font-weight: bold;">Daftar Sekarang</a>
             </div>
-            <h2>Fitur <span class="highlight-gold">Member</span></h2>
-            <p>Sistem registrasi member dan loyalty saat ini sedang dalam tahap pengembangan. Segera nantikan update
-                selanjutnya!</p>
-            <button class="btn btn-primary modal-btn">Mengerti</button>
         </div>
     </div>
 
-    <!-- Smooth Scroll Engine -->
-    <script src="script.js"></script>
-</body>
+    <!-- Core Scripts -->
+    <!-- DO NOT INCLUDE script.js to avoid scroll engines interfering with native scroll -->
+    <script>
+        // Init Supabase
+        const supabaseUrl = 'https://duwqszyygfwqzkgmivah.supabase.co';
+        const supabaseKey = 'sb_publishable_chqwVl0d8g9_b8lHzlA9hQ_vYj4K1gM';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        document.addEventListener('DOMContentLoaded', async () => {
+            
+            // --- 0. Hamburger Toggle ---
+            const hamburger = document.getElementById('hamburger-btn');
+            const navLinks = document.querySelector('.nav-links');
+            if(hamburger && navLinks) {
+                hamburger.addEventListener('click', () => navLinks.classList.toggle('nav-active'));
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', () => navLinks.classList.remove('nav-active'));
+                });
+            }
+
+            // --- 1. Navbar Scrolled State ---
+            const nav = document.querySelector('.glass-nav');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) nav.classList.add('scrolled');
+                else nav.classList.remove('scrolled');
+            });
+            
+            // --- 2. Dynamic Member Link Logic ---
+            const memberLink = document.getElementById('member-link');
+            const authModal = document.getElementById('auth-modal');
+            let isLoggedIn = false;
+            
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                isLoggedIn = true;
+                memberLink.innerHTML = '<i class="fa-solid fa-user-shield"></i> Dashboard';
+                memberLink.href = 'dashboard.html';
+                memberLink.classList.remove('cta-nav');
+                memberLink.classList.add('cta-nav'); // Re-apply cleanly
+            }
+            
+            memberLink.addEventListener('click', (e) => {
+                if (!isLoggedIn) {
+                    e.preventDefault();
+                    authModal.classList.add('show');
+                }
+            });
+            
+            document.querySelector('.close-modal').addEventListener('click', () => {
+                authModal.classList.remove('show');
+            });
+            
+            // --- 2b. Tiny Auth Logic for Modal inside this page ---
+            const authForm = document.getElementById('auth-form');
+            const authSwitchBtn = document.getElementById('auth-switch-btn');
+            let isLoginMode = true;
+            
+            authSwitchBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                isLoginMode = !isLoginMode;
+                document.getElementById('auth-title').innerHTML = isLoginMode ? 'Member <span class="highlight">Login</span>' : 'Daftar <span class="highlight">Member</span>';
+                document.getElementById('auth-submit-btn').textContent = isLoginMode ? 'Login' : 'Register';
+                document.getElementById('auth-switch-text').textContent = isLoginMode ? 'Belum punya akun?' : 'Sudah punya akun?';
+                authSwitchBtn.textContent = isLoginMode ? 'Daftar Sekarang' : 'Login di sini';
+            });
+            
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const user = document.getElementById('auth-username').value.trim();
+                const pass = document.getElementById('auth-password').value;
+                const email = `${user.toLowerCase().replace(/\s+/g, '')}@kamisatoskork.id`;
+                
+                document.getElementById('auth-submit-btn').textContent = 'Memproses...';
+                
+                try {
+                    if (isLoginMode) {
+                        const {error} = await supabaseClient.auth.signInWithPassword({email, password: pass});
+                        if (error) throw error;
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        const {error} = await supabaseClient.auth.signUp({
+                            email, password: pass, options: { data: {raw_username: user} }
+                        });
+                        if (error) throw error;
+                        alert('Berhasil Daftar! Silakan Login.');
+                        authSwitchBtn.click();
+                    }
+                } catch(error) {
+                    document.getElementById('auth-error').textContent = error.message;
+                    document.getElementById('auth-error').style.display = 'block';
+                } finally {
+                    document.getElementById('auth-submit-btn').textContent = isLoginMode ? 'Login' : 'Register';
+                }
+            });
+            
+
+            // --- 3. Lightbox Logic ---
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            
+            document.querySelectorAll('.zoomable-img').forEach(img => {
+                img.addEventListener('click', () => {
+                    lightbox.classList.add('show');
+                    lightboxImg.src = img.src;
+                });
+            });
+            
+            document.querySelector('.close-lightbox').addEventListener('click', () => lightbox.classList.remove('show'));
+            lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('show'); });
+            
+            
+            // --- 4. Fetch Text and Images from Supabase ---
+            const textReviewsContainer = document.getElementById('supabase-reviews');
+            const galleryContainer = document.querySelector('.image-gallery-grid');
+            
+            const { data: reviews, error } = await supabaseClient
+                .from('testimonials')
+                .select(`rating, content, image_url, created_at, profiles(raw_username)`)
+                .eq('status', 'approved')
+                .order('created_at', { ascending: false });
+                
+            if (error) {
+                textReviewsContainer.innerHTML = `<p style="color: red; text-align: center; grid-column: 1/-1;">Gagal memuat data: ${error.message}</p>`;
+                return;
+            }
+            
+            textReviewsContainer.innerHTML = ''; // Clear loading text
+            galleryContainer.innerHTML = ''; // Clear hardcoded images
+            
+            let hasText = false;
+            let hasImages = false;
+            
+            reviews.forEach(t => {
+                // Populate Text Reviews Grid First (Only if it has content & rating)
+                if (t.rating && t.content && t.content !== 'Admin Upload') {
+                    hasText = true;
+                    const username = t.profiles ? t.profiles.raw_username : 'Seseorang';
+                    let starsHTML = '';
+                    for(let i=0; i<t.rating; i++) starsHTML += '<i class="fa-solid fa-star" style="color: gold; margin-right: 4px; text-shadow: 0 0 5px rgba(255,215,0,0.5);"></i>';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'text-review-card';
+                    card.innerHTML = `
+                        <div class="stars-container">${starsHTML}</div>
+                        <p style="font-style: italic; font-size: 1.05rem; line-height: 1.7; flex-grow: 1; margin-bottom: 1.5rem;">"${t.content}"</p>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; margin-top: auto;">
+                            <span style="color: var(--custom-blue); font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.1rem;">- ${username}</span>
+                        </div>
+                    `;
+                    textReviewsContainer.appendChild(card);
+                }
+                
+                // Populate Image Gallery Masonry Grid (If image exists)
+                if (t.image_url) {
+                    hasImages = true;
+                    const fullUrl = supabaseClient.storage.from('testi_images').getPublicUrl(t.image_url).data.publicUrl;
+                    
+                    const imgItem = document.createElement('div');
+                    imgItem.className = 'image-item';
+                    imgItem.innerHTML = `<img src="${fullUrl}" class="zoomable-img" alt="Testimoni">`;
+                    galleryContainer.appendChild(imgItem);
+                }
+            });
+            
+            // Empty States
+            if (!hasText) {
+                textReviewsContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1; padding: 2rem;">Belum ada ulasan teks.</p>`;
+            }
+            if (!hasImages) {
+                galleryContainer.innerHTML = `<p style="color: var(--text-muted); text-align: center; width: 100%; grid-column: 1/-1;">Belum ada foto/screenshot joki yang diupload.</p>`;
+            }
+            
+            // Reattach Lightbox Logic to the new dynamically created images
+            document.querySelectorAll('.zoomable-img').forEach(img => {
+                img.addEventListener('click', () => {
+                    lightbox.classList.add('show');
+                    lightboxImg.src = img.src;
+                });
+            });
+                
+            if (error) {
+                reviewsContainer.innerHTML = `<p style="color: red; text-align: center; grid-column: 1/-1;">Gagal memuat ulasan.</p>`;
+                return;
+            }
+            
+            reviewsContainer.innerHTML = ''; // Clear loading
+            
+
+            
+        });
+    </script>
+</body>
 </html>

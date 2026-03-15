@@ -105,39 +105,149 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Member Modal (Under Construction) ---
+    // --- Member Modal (Auth & Supabase) ---
+    const supabaseUrl = 'https://duwqszyygfwqzkgmivah.supabase.co';
+    const supabaseKey = 'sb_publishable_chqwVl0d8g9_b8lHzlA9hQ_vYj4K1gM';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
     const memberLink = document.getElementById('member-link');
-    const memberModal = document.getElementById('construction-modal');
-    const closeMemberModal = document.querySelector('.close-modal');
-    const modalBtnClose = document.querySelector('.modal-btn');
-
-    const closeConstructionModal = () => {
-        memberModal.classList.remove('show');
-        document.body.style.overflow = 'auto'; // allow scrolling again
-    };
-
-    memberLink.addEventListener('click', (e) => {
-        e.preventDefault(); // Prevent scrolling to top
-        memberModal.classList.add('show');
-        document.body.style.overflow = 'hidden'; 
-    });
-
-    closeMemberModal.addEventListener('click', closeConstructionModal);
-    modalBtnClose.addEventListener('click', closeConstructionModal);
-    
-    // Close when clicking outside content
-    memberModal.addEventListener('click', (e) => {
-        if (e.target === memberModal) {
-            closeConstructionModal();
+    const authModal = document.getElementById('auth-modal');
+    if (authModal) { // Exists on index and testimonial pages
+        const closeAuthModal = document.querySelector('#auth-modal .close-modal');
+        
+        // Auth Form Elements
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const authDesc = document.getElementById('auth-desc');
+        const authUsername = document.getElementById('auth-username');
+        const authPassword = document.getElementById('auth-password');
+        const authError = document.getElementById('auth-error');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const authSwitchText = document.getElementById('auth-switch-text');
+        const authSwitchBtn = document.getElementById('auth-switch-btn');
+        
+        let isLoginMode = true;
+        const DUMMY_DOMAIN = '@member.kamisato.co'; // Hidden email domain for username-only login
+        
+        // Check Session on Load
+        async function checkSession() {
+            const { data, error } = await supabaseClient.auth.getSession();
+            if (data && data.session) {
+                return true;
+            }
+            return false;
         }
-    });
 
-    // Close on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && memberModal.classList.contains('show')) {
-            closeConstructionModal();
-        }
-    });
+        const closeMemberModal = () => {
+            authModal.classList.remove('show');
+            document.body.style.overflow = 'auto'; // allow scrolling again
+        };
+
+        memberLink.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            
+            // If logged in, go to dashboard
+            const isLoggedIn = await checkSession();
+            if (isLoggedIn) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            // Else, show login modal
+            authModal.classList.add('show');
+            document.body.style.overflow = 'hidden'; 
+        });
+
+        closeAuthModal.addEventListener('click', closeMemberModal);
+        
+        // Close when clicking outside content
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                closeMemberModal();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && authModal.classList.contains('show')) {
+                closeMemberModal();
+            }
+        });
+        
+        // Toggle Login / Register
+        authSwitchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            
+            if (isLoginMode) {
+                authTitle.innerHTML = 'Member <span class="highlight">Login</span>';
+                authDesc.textContent = 'Masuk ke dashboard loyalty program Anda.';
+                authSubmitBtn.textContent = 'Login';
+                authSwitchText.textContent = 'Belum punya akun?';
+                authSwitchBtn.textContent = 'Daftar Sekarang';
+            } else {
+                authTitle.innerHTML = 'Daftar <span class="highlight">Member</span>';
+                authDesc.textContent = 'Buat akun untuk mendapatkan loyalty points.';
+                authSubmitBtn.textContent = 'Register';
+                authSwitchText.textContent = 'Sudah punya akun?';
+                authSwitchBtn.textContent = 'Login di sini';
+            }
+            authError.style.display = 'none';
+        });
+
+        // Submit Handler
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = authUsername.value.trim().toLowerCase().replace(/\s+/g, '');
+            const password = authPassword.value;
+            
+            // Supabase requires email. We create a fake email quietly to satisfy pure-username request.
+            const email = `${username}${DUMMY_DOMAIN}`;
+            
+            authSubmitBtn.disabled = true;
+            authSubmitBtn.textContent = 'Memproses...';
+            authError.style.display = 'none';
+            
+            try {
+                if (isLoginMode) {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    window.location.href = 'dashboard.html';
+                    
+                } else {
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: {
+                            data: {
+                                raw_username: authUsername.value.trim()
+                            }
+                        }
+                    });
+                    
+                    if (error) throw error;
+                    
+                    // Show success and switch to login
+                    alert('Pendaftaran berhasil! Silakan login sekarang.');
+                    authSwitchBtn.click(); // switch back to login
+                }
+            } catch (error) {
+                authError.textContent = error.message.includes('Invalid login') 
+                    ? 'Username atau password salah!' 
+                    : (error.message.includes('User already registered') ? 'Username sudah digunakan terdaftar!' : error.message);
+                authError.style.display = 'block';
+            } finally {
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.textContent = isLoginMode ? 'Login' : 'Register';
+            }
+        });
+    }
     
     // --- Scroll Animations (Intersection Observer) ---
     const observerOptions = {

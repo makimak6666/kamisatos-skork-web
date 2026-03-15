@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard | Kamisato's Skork</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="stars-bg" id="stars-container"></div>
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fa-solid fa-moon"></i> Kamisato's <span class="highlight">Skork</span>
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="cta-nav" style="background: rgba(10,20,35,0.6) !important; border-color: rgba(255,255,255,0.2) !important;">Beranda</a></li>
+                <li><a href="#" id="logout-btn" class="cta-nav" style="background: rgba(255,107,107,0.1) !important; color: #ff6b6b !important; border-color: rgba(255,107,107,0.3) !important;">Logout</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger-btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page-content" style="display: flex; justify-content: center; align-items: flex-start; min-height: 80vh; padding: 6rem 2rem 2rem;">
+        <div style="width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 2rem;">
+            
+            <!-- Welcome Panel -->
+            <div class="glass-panel card-3d" style="padding: 3rem; text-align: center;">
+                <div class="modal-icon" style="font-size: 4rem; margin-bottom: 1rem; color: var(--custom-blue);">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; text-transform: none;">Selamat Datang, <br><span class="highlight" id="dashboard-username">...</span>!</h1>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Ini adalah Member Area eksklusif Anda.</p>
+                
+                <div style="background: rgba(10, 20, 35, 0.6); border: 1px solid var(--glass-border-light); border-radius: 12px; padding: 2rem;">
+                    <h3 style="font-family: 'Nunito', sans-serif; text-transform: none; letter-spacing: normal; color: #fff; margin-bottom: 0.5rem; font-size: 1.2rem;">Loyalty Points</h3>
+                    <div style="font-size: 3rem; font-weight: 800; color: var(--custom-blue); text-shadow: 0 0 15px var(--custom-blue-glow);">
+                        <span id="loyalty-count">0</span> <i class="fa-solid fa-star" style="font-size: 2rem;"></i>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">Dapatkan +50 Poin setiap kali ulasan Anda di-Approve Admin.</p>
+                </div>
+            </div>
+
+            <!-- Write Testimonial Flow -->
+            <div class="glass-panel" style="padding: 2rem; border-left: 4px solid var(--custom-blue);">
+                <h3 style="font-family: 'Cinzel', serif; font-size: 1.5rem; margin-bottom: 0.5rem;">Tinggalkan <span class="highlight">Jejak</span></h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Puas dengan layanan kami? Beri ulasan agar kami bisa menjadi lebih baik lagi.</p>
+                
+                <form id="testi-form" class="auth-form">
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: var(--text-main);">Berikan Rating Anda</label>
+                        <select id="testi-rating" style="width: 100%; padding: 1rem; background: rgba(10, 20, 35, 0.6); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; outline: none; font-size: 1.1rem; appearance: none;">
+                            <option value="5">⭐⭐⭐⭐⭐ Sangat Memuaskan</option>
+                            <option value="4">⭐⭐⭐⭐ Memuaskan</option>
+                            <option value="3">⭐⭐⭐ Cukup</option>
+                            <option value="2">⭐⭐ Kurang</option>
+                            <option value="1">⭐ Sangat Kurang</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 1rem;">
+                        <textarea id="testi-content" class="auth-input" placeholder="Tuliskan pengalaman Anda menggunakan jasa kami di sini..." rows="4" required style="width: 100%; padding: 1rem; background: rgba(10, 20, 35, 0.6); border: 2px solid var(--glass-border-light); border-radius: 8px; color: #fff; font-family: 'Nunito', sans-serif; font-size: 1rem; outline: none; transition: all 0.3s; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <div class="input-group" style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2);">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: var(--text-main);"><i class="fa-solid fa-camera"></i> Lampirkan Screenshot (Opsional)</label>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem;">Punya bukti gacha wangi atau penyelesaian Abyss? Upload di sini (.png/.jpg max 2MB).</p>
+                        <input type="file" id="testi-image" accept="image/png, image/jpeg" style="width: 100%; color: #fff; font-size: 0.9rem;">
+                    </div>
+                    
+                    <p id="testi-msg" style="display: none; font-size: 0.9rem; margin-bottom: 1rem; padding: 0.5rem; border-radius: 8px; background: rgba(255,255,255,0.1);"></p>
+                    
+                    <button type="submit" class="btn btn-primary" id="testi-submit" style="align-self: flex-start;">Kirim Testimoni & Klaim Poin</button>
+                </form>
+            </div>
+            
+            <!-- My Review History -->
+            <div class="glass-panel" style="padding: 2rem; border-left: 4px solid var(--custom-blue); margin-top: 1rem;">
+                <h3 style="font-family: 'Cinzel', serif; font-size: 1.5rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat <span class="highlight">Ulasan Saya</span></h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Pantau status persetujuan ulasan Anda di sini.</p>
+                
+                <div id="my-reviews-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Reviews injected here -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 1rem;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat riwayat...</div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Lightbox Element -->
+    <div id="lightbox" class="lightbox" style="z-index: 2000;">
+        <span class="close-lightbox">&times;</span>
+        <div class="lightbox-content-wrapper">
+            <img class="lightbox-img" id="lightbox-img" alt="Zoomed Screenshot">
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://duwqszyygfwqzkgmivah.supabase.co';
+        const supabaseKey = 'sb_publishable_chqwVl0d8g9_b8lHzlA9hQ_vYj4K1gM';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Hamburger Mobile Toggle
+            const hamburger = document.getElementById('hamburger-btn');
+            const navLinks = document.querySelector('.nav-links');
+            if(hamburger && navLinks) {
+                hamburger.addEventListener('click', () => navLinks.classList.toggle('nav-active'));
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', () => navLinks.classList.remove('nav-active'));
+                });
+            }
+
+            // Check session
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                // Not logged in -> Redirect to home
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Display Username from metadata
+            const userMetadata = session.user.user_metadata || {};
+            let displayUsername = userMetadata.raw_username || session.user.email.split('@')[0];
+            document.getElementById('dashboard-username').textContent = displayUsername;
+            
+            // 1. Fetch Real Loyalty Points and Roles from DB
+            const { data: profile, error: dbError } = await supabaseClient
+                .from('profiles')
+                .select('loyalty_points, role')
+                .eq('id', session.user.id)
+                .single();
+                
+            if (profile) {
+                document.getElementById('loyalty-count').textContent = profile.loyalty_points || 0;
+                
+                // Show Admin Button dynamically if user is admin
+                if (profile.role === 'admin') {
+                    const navLinks = document.querySelector('.nav-links');
+                    const li = document.createElement('li');
+                    li.innerHTML = '<a href="admin.html" style="color: gold; text-shadow: 0 0 10px rgba(255,215,0,0.5);">Panel Admin 👑</a>';
+                    navLinks.insertBefore(li, navLinks.firstChild);
+                }
+            }
+            
+            // 2. Handle Testimonial Submission
+            const testiForm = document.getElementById('testi-form');
+            if (testiForm) {
+                testiForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const btn = document.getElementById('testi-submit');
+                    const msg = document.getElementById('testi-msg');
+                    
+                    btn.disabled = true;
+                    btn.textContent = 'Memproses Upload...';
+                    
+                    const rating = parseInt(document.getElementById('testi-rating').value);
+                    const content = document.getElementById('testi-content').value;
+                    const fileInput = document.getElementById('testi-image');
+                    const file = fileInput.files[0];
+                    let imagePath = null;
+                    
+                    try {
+                        // Handle Optional Image Upload First
+                        if (file) {
+                            if (file.size > 2 * 1024 * 1024) throw new Error("Ukuran gambar maksimal 2MB!");
+                            
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `user_${session.user.id}_${Date.now()}.${fileExt}`;
+                            
+                            const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                                .from('testi_images').upload(fileName, file);
+                                
+                            if (uploadError) throw new Error("Gagal upload gambar: " + uploadError.message);
+                            imagePath = uploadData.path;
+                        }
+                        
+                        // Proceed to Insert DB Record
+                        const { error: insertError } = await supabaseClient
+                            .from('testimonials')
+                            .insert([
+                                { 
+                                    user_id: session.user.id, 
+                                    rating: rating, 
+                                    content: content, 
+                                    image_url: imagePath,
+                                    status: 'pending' 
+                                }
+                            ]);
+                            
+                        if (insertError) throw new Error("Gagal menyimpan ulasan: " + insertError.message);
+                        
+                        // Success State
+                        msg.style.display = 'block';
+                        msg.style.background = 'rgba(76, 209, 55, 0.2)';
+                        msg.style.color = '#4cd137';
+                        msg.textContent = '✅ Ulasan ' + (file ? 'dan gambar ' : '') + 'berhasil dikirim! Menunggu approval Admin.';
+                        
+                        document.getElementById('testi-content').value = '';
+                        fileInput.value = '';
+                        setTimeout(() => { msg.style.display = 'none'; }, 5000);
+                        
+                    } catch (err) {
+                        msg.style.display = 'block';
+                        msg.style.background = 'rgba(232, 65, 24, 0.2)';
+                        msg.style.color = '#e84118';
+                        msg.textContent = err.message;
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Kirim Testimoni & Klaim Poin';
+                    }
+                });
+            }
+
+            // Handle Logout
+            document.getElementById('logout-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await supabaseClient.auth.signOut();
+                window.location.href = 'index.html';
+            });
+            
+            // 3. Fetch My Reviews
+            fetchMyReviews(session.user.id);
+            
+            // Lightbox
+            const lightbox = document.getElementById('lightbox');
+            document.querySelector('.close-lightbox').addEventListener('click', () => lightbox.classList.remove('show'));
+            lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('show'); });
+            
+        });
+        
+        async function fetchMyReviews(userId) {
+            const container = document.getElementById('my-reviews-list');
+            const { data, error } = await supabaseClient.from('testimonials')
+                .select('rating, content, status, image_url, created_at')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+                
+            if (error) { container.innerHTML = `<p style="color:#ff6b6b;">Gagal memuat: ${error.message}</p>`; return; }
+            if (data.length === 0) { container.innerHTML = `<p style="color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; text-align: center;">Belum ada ulasan yang Anda buat.</p>`; return; }
+            
+            container.innerHTML = '';
+            
+            data.forEach(t => {
+                let statusBadge = '';
+                if(t.status === 'approved') statusBadge = '<span style="background: rgba(76, 209, 55, 0.2); color: #4cd137; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid #4cd137;">✅ Approved</span>';
+                else if(t.status === 'pending') statusBadge = '<span style="background: rgba(251, 197, 49, 0.2); color: #fbc531; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid #fbc531;">⏳ Pending Approval</span>';
+                else statusBadge = '<span style="background: rgba(232, 65, 24, 0.2); color: #e84118; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; border: 1px solid #e84118;">❌ Rejected</span>';
+                
+                let starsHTML = '';
+                if (t.rating) {
+                    for(let i=0; i<t.rating; i++) starsHTML += '<i class="fa-solid fa-star" style="color: gold; margin-right: 2px; font-size: 0.8rem;"></i>';
+                }
+                
+                let mediaHTML = '';
+                if (t.image_url) {
+                    const fullUrl = supabaseClient.storage.from('testi_images').getPublicUrl(t.image_url).data.publicUrl;
+                    mediaHTML = `<div style="margin-top: 0.8rem;"><img src="${fullUrl}" onclick="showLightbox('${fullUrl}')" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;" title="Klik untuk perbesar"></div>`;
+                }
+                
+                const date = new Date(t.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+                
+                const card = document.createElement('div');
+                card.style.cssText = 'background: rgba(10, 20, 35, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column;';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <div>${starsHTML}</div>
+                        <div>${statusBadge}</div>
+                    </div>
+                    <p style="font-style: italic; font-size: 0.95rem; color: #fff; line-height: 1.5; margin-bottom: 0.5rem;">"${t.content || 'Hanya melampirkan foto.'}"</p>
+                    ${mediaHTML}
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: right;">Ditulis pada: ${date}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function showLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('lightbox').classList.add('show');
+        }
+    </script>
+</body>
+</html>
